@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import RenameChatModal from "./RenameChatModal";
 import DeleteChatModal from "./DeleteChatModal";
@@ -16,8 +16,30 @@ function ChatList({
   const [renameChatId, setRenameChatId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
 
+  const chatListRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event){
+      if(
+        chatListRef.current &&
+        !chatListRef.current.contains(event.target)
+      ) {
+        setOpenMenuId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, [])
+
   return (
-    <div className="flex-1 overflow-y-auto px-3">
+    <div ref={chatListRef} className="flex-1 overflow-y-auto px-3">
       {chats.map(chat => (
         <div
           key={chat.id}
