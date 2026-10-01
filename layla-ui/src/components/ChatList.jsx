@@ -17,7 +17,7 @@ function ChatList({
   const [renameValue, setRenameValue] = useState("");
 
   const chatListRef = useRef(null);
-
+  // hide chat menu when user clicks outside of sidebar
   useEffect(() => {
     function handleClickOutside(event){
       if(
@@ -37,6 +37,23 @@ function ChatList({
       );
     };
   }, [])
+// hide chat menu when user press escape
+  useEffect (() => {
+    function handleEscape(event){
+      if(event.key === "Escape"){
+        setOpenMenuId(null);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape        
+      );
+    };
+  }, []);
 
   return (
     <div ref={chatListRef} className="flex-1 overflow-y-auto px-3">
