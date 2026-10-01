@@ -52,13 +52,15 @@ useEffect(() => {
 
   const newMessage = {
     role: "user",
-    content: message
+    content: message,
+    timestamp: new Date().toISOString()
   };
 
 const updatedMessages = [...messages, newMessage];
 const streamingMessage = {
   role: "assistant",
-  content: ""
+  content: "",
+  timestamp: new Date().toISOString()
 };
 
 setChats(prevChats =>

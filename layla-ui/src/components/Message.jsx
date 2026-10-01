@@ -57,6 +57,14 @@ async function copyCode(code) {
 
         {message.content}
       </ReactMarkdown>
+      {message.timestamp && (
+        <div className="mt-1 text-right text-[10] text-zinc-400">
+          {new Date(message.timestamp).toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+          })}
+        </div>
+      )}
     </div>
   );
 }
