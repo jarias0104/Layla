@@ -23,14 +23,24 @@ function App() {
 
 const [activeChatId, setActiveChatId] = useState(() => {
   const savedChats = localStorage.getItem("layla-chats");
+  const savedActiveChat = localStorage.getItem("layla-active-chat");
 
   if (savedChats) {
     const parsedChats = JSON.parse(savedChats);
+
+    if (
+      savedActiveChat &&
+      parsedChats.some(chat => chat.id === Number(savedActiveChat))
+    ) {
+      return Number(savedActiveChat);
+    }
+
     return parsedChats[0]?.id ?? 1;
   }
 
   return 1;
 });
+
 const activeChat = chats.find(chat => chat.id === activeChatId);
 const messages = activeChat ? activeChat.messages : [];
   const [isThinking, setIsThinking] = useState(false);
@@ -45,6 +55,11 @@ const messages = activeChat ? activeChat.messages : [];
 useEffect(() => {
   localStorage.setItem("layla-chats", JSON.stringify(chats));
 }, [chats]);
+
+useEffect(() => {
+  localStorage.setItem("layla-active-chat", activeChatId);
+}, [activeChatId]);
+
   async function sendMessage() {
   if (message.trim() === "") {
     return;
