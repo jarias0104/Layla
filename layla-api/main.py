@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import requests
@@ -33,12 +34,17 @@ def chat(request: ChatRequest):
         json={
             "model": "layla",
             "messages": request.messages,
-            "stream": False
-        }
+            "stream": True
+        },
+        stream=True
     )
 
-    data = response.json()
+    def generate():
+        for line in response.iter_lines():
+            if line:
+                yield line + b"\n"
 
-    return {
-        "response": data["message"]["content"]
-    }
+    return StreamingResponse(
+        generate(),
+        media_type="application/x-ndjson"
+    )

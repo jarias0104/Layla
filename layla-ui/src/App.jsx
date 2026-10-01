@@ -55,18 +55,18 @@ useEffect(() => {
     content: message
   };
 
-  const updatedMessages = [...messages, newMessage];
+const updatedMessages = [...messages, newMessage];
+const streamingMessage = {
+  role: "assistant",
+  content: ""
+};
 
- setChats(prevChats =>
+setChats(prevChats =>
   prevChats.map(chat =>
     chat.id === activeChatId
       ? {
           ...chat,
-          title:
-            chat.messages.length === 0
-              ? message.slice(0, 30)
-              : chat.title,
-          messages: updatedMessages
+          messages: [...chat.messages, newMessage, streamingMessage]
         }
       : chat
   )
@@ -77,32 +77,67 @@ useEffect(() => {
 
   try {
   const response = await fetch("http://127.0.0.1:8000/chat", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      messages: updatedMessages
-    })
-  });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    messages: updatedMessages
+  })
+});
 
-  const data = await response.json();
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
 
-  const laylaResponse = {
-    role: "assistant",
-    content: data.response
-  };
+let buffer = "";
+let assistantMessage = "";
 
-  setChats(prevChats =>
-    prevChats.map(chat =>
-      chat.id === activeChatId
-        ? {
-            ...chat,
-            messages: [...chat.messages, laylaResponse]
-          }
-        : chat
-    )
-  );
+while (true) {
+  const { value, done } = await reader.read();
+
+  if (done) {
+    break;
+  }
+
+  buffer += decoder.decode(value);
+
+  const lines = buffer.split("\n");
+
+  buffer = lines.pop() || "";
+
+  for (const line of lines) {
+    if (!line.trim()) {
+      continue;
+    }
+
+    //console.log("LINE:", line);
+
+    const data = JSON.parse(line);
+
+    if (data.message?.content) {
+      assistantMessage += data.message.content;
+
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.id === activeChatId
+            ? {
+                ...chat,
+                messages: chat.messages.map((msg, index) =>
+                  index === chat.messages.length - 1
+                    ? {
+                        ...msg,
+                        content: assistantMessage
+                      }
+                    : msg
+                )
+              }
+            : chat
+        )
+      );
+    }
+  }
+}
+
 } catch (error) {
     console.error("Error:", error);
 
