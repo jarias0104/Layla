@@ -25,14 +25,14 @@ echo =========================
 echo   Starting Layla API
 echo =========================
 
-start "Layla API" cmd /k "cd /d C:\Users\jeshu\Downloads\coding\react\Layla\layla-api && .venv\Scripts\activate && uvicorn main:app --reload"
+start "Layla API" cmd /k "cd /d C:\yourfolder\yourfolder\yourfolder\folder\folder\Layla\layla-api && .venv\Scripts\activate && uvicorn main:app --reload"
 
 echo.
 echo =========================
 echo   Starting Layla UI
 echo =========================
 
-start "Layla UI" cmd /k "cd /d C:\Users\jeshu\Downloads\coding\react\Layla\layla-ui && npm run dev"
+start "Layla UI" cmd /k "cd /d C:\yourfolder\yourfolder\yourfolder\folder\folder\Layla\layla-ui && npm run dev"
 
 timeout /t 5 /nobreak > nul
 
