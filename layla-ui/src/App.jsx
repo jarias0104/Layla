@@ -43,8 +43,8 @@ const [activeChatId, setActiveChatId] = useState(() => {
 
 const activeChat = chats.find(chat => chat.id === activeChatId);
 const messages = activeChat ? activeChat.messages : [];
-  const [isThinking, setIsThinking] = useState(false);
-  const messagesEndRef = useRef(null);
+const [isThinking, setIsThinking] = useState(false);
+const messagesEndRef = useRef(null);
 
   useEffect(() => {
   messagesEndRef.current?.scrollIntoView({
@@ -60,7 +60,7 @@ useEffect(() => {
   localStorage.setItem("layla-active-chat", activeChatId);
 }, [activeChatId]);
 
-  async function sendMessage() {
+async function sendMessage() {
   if (message.trim() === "") {
     return;
   }
