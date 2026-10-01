@@ -14,7 +14,7 @@ async function copyCode(code) {
 
   return (
     <div
-      className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm ${
+      className={`max-w-[75%] min-w-0 rounded-2xl px-4 py-3 text-sm ${
 
         isUser
           ? "self-end bg-zinc-700 text-white"
