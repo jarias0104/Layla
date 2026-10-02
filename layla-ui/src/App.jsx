@@ -99,6 +99,14 @@ async function sendMessage(messageToSend = message, regenerateIndex = null, edit
     timestamp: new Date().toISOString()
   };
 
+  const isFirstMessage = messages.length === 0;
+
+  const newTitle = isFirstMessage
+    ? messageToSend.length > 30
+      ? messageToSend/slice(0, 30) + "..."
+      : messageToSend
+    : null;
+
 const updatedMessages = 
   regenerateIndex !== null
   ? messages.slice(0, regenerateIndex)
@@ -120,6 +128,7 @@ setChats(prevChats =>
     chat.id === activeChatId
       ? {
           ...chat,
+          title: newTitle ?? chat.title,
           messages:
             regenerateIndex !== null
               ? [
