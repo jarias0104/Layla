@@ -3,7 +3,8 @@ function ChatInput({
   setMessage,
   sendMessage,
   handleKeyDown,
-  isThinking
+  isThinking,
+  stopGenerating
 }) {
   return (
     <footer className="flex shrink-0 gap-3 border-t border-zinc-800 p-4">
@@ -18,11 +19,10 @@ function ChatInput({
       />
 
       <button
-        onClick={sendMessage}
-        disabled={isThinking}
+        onClick={isThinking ? stopGenerating : sendMessage}
         className="rounded-xl bg-zinc-700 px-5 py-3 text-sm font-medium text-white transition hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        Send
+        {isThinking ? "Stop" : "Send"}
       </button>
     </footer>
   );

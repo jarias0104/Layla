@@ -7,8 +7,10 @@ import ChatInput from "./components/ChatInput";
 
 function App() {
   const [message, setMessage] = useState("");
+  const abortControllerRef = useRef(null);
   const [chats, setChats] = useState(() => {
   const savedChats = localStorage.getItem("layla-chats");
+  
 
   return savedChats
     ? JSON.parse(savedChats)
@@ -60,18 +62,34 @@ useEffect(() => {
   localStorage.setItem("layla-active-chat", activeChatId);
 }, [activeChatId]);
 
-async function sendMessage() {
-  if (message.trim() === "") {
+// stop layla while generating a msg
+function stopGenerating () {
+  abortControllerRef.current?.abort();
+}
+
+function regenerateResponse(message) {
+  const messageIndex = messages.indexOf(message);
+  const userMessage = messages[messageIndex -1];
+  
+  sendMessage(userMessage.content, messageIndex);
+}
+
+async function sendMessage(messageToSend = message, regenerateIndex = null) {
+  if (messageToSend.trim() === "") {
     return;
   }
 
   const newMessage = {
     role: "user",
-    content: message,
+    content: messageToSend,
     timestamp: new Date().toISOString()
   };
 
-const updatedMessages = [...messages, newMessage];
+const updatedMessages = 
+  regenerateIndex !== null
+  ? messages.slice(0, regenerateIndex)
+  : [...messages, newMessage];
+
 const streamingMessage = {
   role: "assistant",
   content: "",
@@ -83,7 +101,13 @@ setChats(prevChats =>
     chat.id === activeChatId
       ? {
           ...chat,
-          messages: [...chat.messages, newMessage, streamingMessage]
+          messages:
+            regenerateIndex !== null
+              ? [
+                  ...chat.messages.slice(0, regenerateIndex),
+                  streamingMessage
+                ]
+              : [...chat.messages, newMessage, streamingMessage]
         }
       : chat
   )
@@ -93,6 +117,9 @@ setChats(prevChats =>
   setIsThinking(true);
 
   try {
+  const controller = new AbortController();
+  abortControllerRef.current = controller;
+
   const response = await fetch("http://127.0.0.1:8000/chat", {
   method: "POST",
   headers: {
@@ -100,7 +127,8 @@ setChats(prevChats =>
   },
   body: JSON.stringify({
     messages: updatedMessages
-  })
+  }),
+  signal: controller.signal
 });
 
 const reader = response.body.getReader();
@@ -140,7 +168,10 @@ while (true) {
             ? {
                 ...chat,
                 messages: chat.messages.map((msg, index) =>
-                  index === chat.messages.length - 1
+                  index ===
+                    (regenerateIndex !== null
+                      ? regenerateIndex
+                      : chat.messages.length - 1)
                     ? {
                         ...msg,
                         content: assistantMessage
@@ -156,9 +187,13 @@ while (true) {
 }
 
 } catch (error) {
-    console.error("Error:", error);
+  if (error.name === "AbortError") {
+    return;
+  }
 
-    const errorMessage = {
+  console.error("Error:", error);
+
+  const errorMessage = {
       role: "assistant",
       content: "Sorry, I couldn't connect to Layla."
     };
@@ -175,6 +210,7 @@ while (true) {
 );
   } finally {
     setIsThinking(false);
+    abortControllerRef.current = null;
   }
 }
 
@@ -211,6 +247,7 @@ function createNewChat() {
             messages={messages}
             isThinking={isThinking}
             messagesEndRef={messagesEndRef}
+            onRegenerate={regenerateResponse}
             /> 
            <ChatInput 
             message={message}
@@ -218,6 +255,7 @@ function createNewChat() {
             sendMessage={sendMessage}
             handleKeyDown={handleKeyDown}
             isThinking={isThinking}
+            stopGenerating={stopGenerating}
            />    
           </section> 
         </div> 

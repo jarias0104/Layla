@@ -4,7 +4,8 @@ import TypingIndicator from "./TypingIndicator";
 function ChatMessages({
   messages,
   isThinking,
-  messagesEndRef
+  messagesEndRef,
+  onRegenerate
 }) {
   return (
     <main className="chat">
@@ -12,6 +13,7 @@ function ChatMessages({
         <Message
           key={index}
           message={msg}
+          onRegenerate={onRegenerate}
         />
       ))}
 
