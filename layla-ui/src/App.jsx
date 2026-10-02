@@ -8,6 +8,7 @@ import ChatInput from "./components/ChatInput";
 function App() {
   const [message, setMessage] = useState("");
   const abortControllerRef = useRef(null);
+  const [editingMessage, setEditingMessage] = useState(null);
   const [chats, setChats] = useState(() => {
   const savedChats = localStorage.getItem("layla-chats");
   
@@ -67,6 +68,7 @@ function stopGenerating () {
   abortControllerRef.current?.abort();
 }
 
+// regenerates a msg
 function regenerateResponse(message) {
   const messageIndex = messages.indexOf(message);
   const userMessage = messages[messageIndex -1];
@@ -74,7 +76,19 @@ function regenerateResponse(message) {
   sendMessage(userMessage.content, messageIndex);
 }
 
-async function sendMessage(messageToSend = message, regenerateIndex = null) {
+// edit a sent msg
+function editMessage(message) {
+  const messageIndex = messages.indexOf(message);
+
+  setEditingMessage({
+    ...message,
+    index: messageIndex
+  });
+
+  setMessage(message.content);
+}
+
+async function sendMessage(messageToSend = message, regenerateIndex = null, editIndex = null) {
   if (messageToSend.trim() === "") {
     return;
   }
@@ -88,7 +102,12 @@ async function sendMessage(messageToSend = message, regenerateIndex = null) {
 const updatedMessages = 
   regenerateIndex !== null
   ? messages.slice(0, regenerateIndex)
-  : [...messages, newMessage];
+  : editIndex !== null
+    ? [
+        ...messages.slice(0, editIndex),
+        newMessage
+    ]
+    : [...messages, newMessage];
 
 const streamingMessage = {
   role: "assistant",
@@ -107,13 +126,20 @@ setChats(prevChats =>
                   ...chat.messages.slice(0, regenerateIndex),
                   streamingMessage
                 ]
-              : [...chat.messages, newMessage, streamingMessage]
+              : editIndex !== null
+                ? [
+                    ...chat.messages.slice(0, editIndex),
+                    newMessage,
+                    streamingMessage
+                  ]
+                : [...chat.messages, newMessage, streamingMessage]  
         }
       : chat
   )
 );
 
   setMessage("");
+  setEditingMessage(null);
   setIsThinking(true);
 
   try {
@@ -168,10 +194,12 @@ while (true) {
             ? {
                 ...chat,
                 messages: chat.messages.map((msg, index) =>
-                  index ===
-                    (regenerateIndex !== null
-                      ? regenerateIndex
-                      : chat.messages.length - 1)
+                    index ===
+                      (regenerateIndex !== null
+                        ? regenerateIndex
+                        : editIndex !== null
+                          ? editIndex + 1
+                          : chat.messages.length - 1)
                     ? {
                         ...msg,
                         content: assistantMessage
@@ -216,7 +244,11 @@ while (true) {
 
 function handleKeyDown(event) {
   if (event.key === "Enter") {
-    sendMessage();
+    sendMessage(
+      message,
+      null,
+      editingMessage?.index ?? null
+    );
   }
 }
 
@@ -248,11 +280,18 @@ function createNewChat() {
             isThinking={isThinking}
             messagesEndRef={messagesEndRef}
             onRegenerate={regenerateResponse}
+            onEdit={editMessage}
             /> 
            <ChatInput 
             message={message}
             setMessage={setMessage}
-            sendMessage={sendMessage}
+            sendMessage={() => 
+              sendMessage(
+                message,
+                null,
+                editingMessage?.index ?? null
+              )
+            }
             handleKeyDown={handleKeyDown}
             isThinking={isThinking}
             stopGenerating={stopGenerating}
@@ -263,4 +302,3 @@ function createNewChat() {
 }
 
 export default App;
-

@@ -5,7 +5,8 @@ function ChatMessages({
   messages,
   isThinking,
   messagesEndRef,
-  onRegenerate
+  onRegenerate,
+  onEdit
 }) {
   return (
     <main className="chat">
@@ -14,6 +15,7 @@ function ChatMessages({
           key={index}
           message={msg}
           onRegenerate={onRegenerate}
+          onEdit={onEdit}
         />
       ))}
 
