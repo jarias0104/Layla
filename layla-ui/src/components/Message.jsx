@@ -1,8 +1,9 @@
 import ReactMarkdown from "react-markdown";
 import { useState } from "react";
-function Message({ message }) {
+function Message({ message, onRegenerate }) {
   const isUser = message.role === "user";
   const [copied, setCopied] = useState(false);
+
 async function copyCode(code) {
     await navigator.clipboard.writeText(code);
     setCopied(true);
@@ -64,6 +65,14 @@ async function copyCode(code) {
             minute: "2-digit"
           })}
         </div>
+      )}
+      {!isUser && (
+        <button
+          onClick={() => onRegenerate(message)}
+          className="mt-2 text-xs text-zinc-400 hover:text-white"
+        >
+          Regenerate
+        </button>  
       )}
     </div>
   );
