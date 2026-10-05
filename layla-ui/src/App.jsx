@@ -10,19 +10,18 @@ function App() {
   const abortControllerRef = useRef(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [chats, setChats] = useState(() => {
-  const savedChats = localStorage.getItem("layla-chats");
+    const savedChats = localStorage.getItem("layla-chats");
   
-
-  return savedChats
-    ? JSON.parse(savedChats)
-    : [
-        {
-          id: 1,
-          title: "New Chat",
-          messages: []
-        }
-      ];
-});
+    return savedChats
+      ? JSON.parse(savedChats)
+      : [
+          {
+            id: 1,
+            title: "New Chat",
+            messages: []
+          }
+        ];
+  });
 
 const [activeChatId, setActiveChatId] = useState(() => {
   const savedChats = localStorage.getItem("layla-chats");
@@ -101,11 +100,24 @@ async function sendMessage(messageToSend = message, regenerateIndex = null, edit
 
   const isFirstMessage = messages.length === 0;
 
-  const newTitle = isFirstMessage
-    ? messageToSend.length > 30
-      ? messageToSend/slice(0, 30) + "..."
-      : messageToSend
-    : null;
+  let newTitle = null;
+
+  if (isFirstMessage){
+    const titleResponse = await fetch("http://127.0.0.1:8000/title", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messages: [newMessage]
+      })
+    });
+
+    const titleData = await titleResponse.json();
+    
+    newTitle = titleData.title;
+    // console.log("generated title:", titleData.title);
+  }
 
 const updatedMessages = 
   regenerateIndex !== null
@@ -128,7 +140,10 @@ setChats(prevChats =>
     chat.id === activeChatId
       ? {
           ...chat,
-          title: newTitle ?? chat.title,
+          title: 
+            chat.title === "New Chat"
+              ? newTitle ?? chat.title
+              : chat.title,
           messages:
             regenerateIndex !== null
               ? [

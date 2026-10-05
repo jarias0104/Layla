@@ -17,7 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 class ChatRequest(BaseModel):
     messages: list
 
@@ -26,6 +25,46 @@ class ChatRequest(BaseModel):
 def home():
     return {"message": "Layla API is running"}
 
+@app.post("/title")
+def generate_title(request: ChatRequest):
+    response = requests.post(
+        "http://localhost:11434/api/chat",
+        json={
+            "model": "layla",
+            "messages": [
+    {
+        "role": "system",
+        "content": """
+You generate conversation titles for a chat application.
+
+Your task is NOT to answer the user.
+Your task is NOT to have a conversation.
+
+Read the user's message and summarize its topic in 2 to 6 words.
+
+Return ONLY the title.
+No quotes.
+No punctuation.
+No greetings.
+Never mention the user.
+Never mention yourself.
+Never describe the title-generation task.
+"""
+    },
+    {
+        "role": "user",
+        "content": request.messages[-1]["content"]
+    }
+],
+            "stream": False
+        }
+    )
+
+    data = response.json()
+
+    return {
+        "title": data["message"]["content"].strip()
+    }
 
 @app.post("/chat")
 def chat(request: ChatRequest):
