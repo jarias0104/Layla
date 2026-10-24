@@ -19,6 +19,7 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     messages: list
+    response_style: str = "balanced"
 
 
 @app.get("/")
@@ -68,11 +69,31 @@ Never describe the title-generation task.
 
 @app.post("/chat")
 def chat(request: ChatRequest):
+    style_instructions = {
+        "concise": "Answer concisely. Prioritize the key information and avoid unnecessary detail.",
+        "balanced": "Give clear, useful answers with enough explanation, without unnecessary filler.",
+        "detailed": "Give thorough explanations with examples and relevant context when useful."
+    }
+
+    style = request.response_style.lower()
+    style_instruction = style_instructions.get(
+        style,
+        style_instructions["balanced"]
+    )
+
+    messages = [
+        {
+            "role": "system",
+            "content": style_instruction
+        },
+        *request.messages
+    ]
+
     response = requests.post(
         "http://localhost:11434/api/chat",
         json={
             "model": "layla",
-            "messages": request.messages,
+            "messages": messages,
             "stream": True
         },
         stream=True

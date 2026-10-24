@@ -6,7 +6,8 @@ function Sidebar({
   chats,
   activeChatId,
   setActiveChatId,
-  setChats
+  setChats,
+  onSettings
 }) {
   const [search, setSearch] = useState("");
   const filteredChats = chats.filter(chat => 
@@ -59,6 +60,13 @@ function Sidebar({
         <small className="text-xs text-zinc-500">
           Running locally
         </small>
+
+        <button
+          onClick={onSettings}
+          className="mt-4 w-full rounded-lg bg-zinc-900 px-3 py-2 text-left text-sm text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
+        >
+          Settings
+        </button>
       </div>
     </aside>
   );
