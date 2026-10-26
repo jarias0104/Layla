@@ -7,6 +7,15 @@ function Settings({ onClose }) {
   const [systemPrompt, setSystemPrompt] = useState(() => {
     return localStorage.getItem("layla-system-prompt") || "";
   });
+
+  const resetSettings = () => {
+    setResponseStyle("balanced");
+    setSystemPrompt("");
+
+    localStorage.setItem("layla-response-style", "balanced");
+    localStorage.setItem("layla-system-prompt", "");
+  };
+
   return (
     <section className="flex-1 overflow-y-auto bg-zinc-900 text-white">
       <header className="flex h-16 items-center justify-between border-b border-zinc-800 px-6">
@@ -100,6 +109,21 @@ function Settings({ onClose }) {
               placeholder="Example: When explaining code, use simple examples and explain each step."
               className="mt-3 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-zinc-500"
             />
+          </div>
+
+          <div className="border-t border-zinc-800 pt-6">
+            <h3 className="text-base font-semibold">Reset Settings</h3>
+
+            <p className="mt-1 text-sm text-zinc-400">
+              Restore the default response style and clear your custom instructions.
+            </p>
+
+            <button
+              onClick={resetSettings}
+              className="mt-4 rounded-lg border border-red-900 bg-red-950/40 px-4 py-2 text-sm text-red-300 transition hover:bg-red-950 hover:text-red-200"
+            >
+              Reset to Defaults
+            </button>
           </div>
         </div>
       </div>
