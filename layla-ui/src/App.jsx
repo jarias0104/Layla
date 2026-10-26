@@ -4,9 +4,11 @@ import Sidebar from "./components/Sidebar";
 import ChatHeader from "./components/ChatHeader";
 import ChatMessages from "./components/ChatMessages";
 import ChatInput from "./components/ChatInput";
+import Settings from "./components/Settings";
 
 function App() {
   const [message, setMessage] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
   const abortControllerRef = useRef(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [chats, setChats] = useState(() => {
@@ -176,7 +178,9 @@ setChats(prevChats =>
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    messages: updatedMessages
+    messages: updatedMessages,
+    response_style: localStorage.getItem("layla-response-style") || "balanced",
+    system_prompt: localStorage.getItem("layla-system-prompt") || ""
   }),
   signal: controller.signal
 });
@@ -294,33 +298,44 @@ function createNewChat() {
             chats={chats}
             activeChatId={activeChatId}
             setActiveChatId={setActiveChatId}
-            setChats={setChats} 
+            setChats={setChats}
+            onSettings={() => setShowSettings(true)} 
           />
 
-          <section className="main"> 
-           <ChatHeader activeChat={activeChat} /> 
-           <ChatMessages
-            messages={messages}
-            isThinking={isThinking}
-            messagesEndRef={messagesEndRef}
-            onRegenerate={regenerateResponse}
-            onEdit={editMessage}
-            /> 
-           <ChatInput 
-            message={message}
-            setMessage={setMessage}
-            sendMessage={() => 
-              sendMessage(
-                message,
-                null,
-                editingMessage?.index ?? null
-              )
-            }
-            handleKeyDown={handleKeyDown}
-            isThinking={isThinking}
-            stopGenerating={stopGenerating}
-           />    
-          </section> 
+        
+          <section className="main">
+            {showSettings ? (
+              <Settings onClose={() => setShowSettings(false)} />
+            ) : (
+              <>
+                <ChatHeader activeChat={activeChat} />
+
+                <ChatMessages
+                  messages={messages}
+                  isThinking={isThinking}
+                  messagesEndRef={messagesEndRef}
+                  onRegenerate={regenerateResponse}
+                  onEdit={editMessage}
+                />
+
+                <ChatInput
+                  message={message}
+                  setMessage={setMessage}
+                  sendMessage={() =>
+                    sendMessage(
+                      message,
+                      null,
+                      editingMessage?.index ?? null
+                    )
+                  }
+                  handleKeyDown={handleKeyDown}
+                  isThinking={isThinking}
+                  stopGenerating={stopGenerating}
+                />
+              </>
+            )}
+          </section>
+
         </div> 
   );
 }
