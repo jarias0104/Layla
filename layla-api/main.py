@@ -20,6 +20,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     messages: list
     response_style: str = "balanced"
+    system_prompt: str = ""
 
 
 @app.get("/")
@@ -81,10 +82,18 @@ def chat(request: ChatRequest):
         style_instructions["balanced"]
     )
 
+    system_instruction = style_instruction
+
+    if request.system_prompt.strip():
+        system_instruction += (
+            "\n\nAdditional instructions from the user:\n"
+            + request.system_prompt.strip()
+        )
+
     messages = [
         {
             "role": "system",
-            "content": style_instruction
+            "content": system_instruction
         },
         *request.messages
     ]

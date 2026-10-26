@@ -179,8 +179,9 @@ setChats(prevChats =>
   },
   body: JSON.stringify({
     messages: updatedMessages,
-    response_style: localStorage.getItem("layla-response-style" || "balanced" 
-  )}),
+    response_style: localStorage.getItem("layla-response-style") || "balanced",
+    system_prompt: localStorage.getItem("layla-system-prompt") || ""
+  }),
   signal: controller.signal
 });
 
