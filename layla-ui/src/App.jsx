@@ -71,6 +71,7 @@ function stopGenerating () {
 
 // regenerates a msg
 function regenerateResponse(message) {
+<<<<<<< Updated upstream
   const messageIndex = messages.indexOf(message);
 
   if(messageIndex <= 0 || message.role !== "assistant"){
@@ -83,6 +84,22 @@ function regenerateResponse(message) {
     return;
   }
   
+=======
+  const messageIndex = messages.findIndex(
+    msg => msg.id === message.id
+  );
+
+  if (messageIndex <= 0 || message.role !== "assistant") {
+    return;
+  }
+
+  const userMessage = messages[messageIndex - 1];
+
+  if (userMessage.role !== "user") {
+    return;
+  }
+
+>>>>>>> Stashed changes
   sendMessage(userMessage.content, messageIndex);
 }
 
@@ -152,7 +169,7 @@ setChats(prevChats =>
     chat.id === activeChatId
       ? {
           ...chat,
-          title: 
+          title:
             chat.title === "New Chat"
               ? newTitle ?? chat.title
               : chat.title,
@@ -169,7 +186,7 @@ setChats(prevChats =>
                     newMessage,
                     streamingMessage
                   ]
-                : [...chat.messages, newMessage, streamingMessage]  
+                : [...chat.messages, newMessage, streamingMessage]
         }
       : chat
   )
@@ -250,14 +267,29 @@ while (true) {
 
 } catch (error) {
   if (error.name === "AbortError") {
+    setChats(prevChats =>
+      prevChats.map(chat =>
+        chat.id === activeChatId
+          ? {
+              ...chat,
+              messages: chat.messages.filter(
+                msg => msg.id !== streamingMessage.id || msg.content !== ""
+              )
+            }
+          : chat
+      )
+    );
+
     return;
   }
 
   console.error("Error:", error);
 
   const errorMessage = {
+      id: streamingMessage.id,
       role: "assistant",
-      content: "Sorry, I couldn't connect to Layla."
+      content: "Sorry, I couldn't connect to Layla.",
+      timestamp: new Date().toISOString()
     };
 
     setChats(prevChats =>
@@ -265,9 +297,13 @@ while (true) {
     chat.id === activeChatId
       ? {
           ...chat,
-          messages: [...chat.messages, errorMessage]
+          messages: chat.messages.map(msg => 
+            msg.id === streamingMessage.id
+            ? errorMessage
+            : msg
+          )
         }
-      : chat
+      : chat      
   )
 );
   } finally {
