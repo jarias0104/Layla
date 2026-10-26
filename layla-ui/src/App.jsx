@@ -72,7 +72,16 @@ function stopGenerating () {
 // regenerates a msg
 function regenerateResponse(message) {
   const messageIndex = messages.indexOf(message);
+
+  if(messageIndex <= 0 || message.role !== "assistant"){
+    return;
+  }
+
   const userMessage = messages[messageIndex -1];
+  
+  if (userMessage.role !== "user"){
+    return;
+  }
   
   sendMessage(userMessage.content, messageIndex);
 }
@@ -132,6 +141,7 @@ const updatedMessages =
     : [...messages, newMessage];
 
 const streamingMessage = {
+  id: crypto.randomUUID(),
   role: "assistant",
   content: "",
   timestamp: new Date().toISOString()
@@ -150,7 +160,8 @@ setChats(prevChats =>
             regenerateIndex !== null
               ? [
                   ...chat.messages.slice(0, regenerateIndex),
-                  streamingMessage
+                  streamingMessage,
+                  ...chat.messages.slice(regenerateIndex + 1)
                 ]
               : editIndex !== null
                 ? [
@@ -221,13 +232,8 @@ while (true) {
           chat.id === activeChatId
             ? {
                 ...chat,
-                messages: chat.messages.map((msg, index) =>
-                    index ===
-                      (regenerateIndex !== null
-                        ? regenerateIndex
-                        : editIndex !== null
-                          ? editIndex + 1
-                          : chat.messages.length - 1)
+                messages: chat.messages.map(msg =>
+                  msg.id === streamingMessage.id
                     ? {
                         ...msg,
                         content: assistantMessage
