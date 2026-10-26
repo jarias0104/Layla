@@ -71,7 +71,6 @@ function stopGenerating () {
 
 // regenerates a msg
 function regenerateResponse(message) {
-<<<<<<< Updated upstream
   const messageIndex = messages.indexOf(message);
 
   if(messageIndex <= 0 || message.role !== "assistant"){
@@ -84,7 +83,7 @@ function regenerateResponse(message) {
     return;
   }
   
-=======
+}
   const messageIndex = messages.findIndex(
     msg => msg.id === message.id
   );
@@ -99,7 +98,6 @@ function regenerateResponse(message) {
     return;
   }
 
->>>>>>> Stashed changes
   sendMessage(userMessage.content, messageIndex);
 }
 
@@ -380,6 +378,6 @@ function createNewChat() {
 
         </div> 
   );
-}
+
 
 export default App;
