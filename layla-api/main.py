@@ -21,11 +21,32 @@ class ChatRequest(BaseModel):
     messages: list
     response_style: str = "balanced"
     system_prompt: str = ""
+    model: str = "layla"
 
 
 @app.get("/")
 def home():
     return {"message": "Layla API is running"}
+
+@app.get("/models")
+def get_models():
+    response = requests.get(
+        "http://localhost:11434/api/tags",
+        timeout=10
+    )
+    response.raise_for_status()
+
+    data = response.json()
+
+    return {
+        "models": [
+            {
+                "name": model["name"],
+                "size": model.get("size", 0)
+            }
+            for model in data.get("models", [])
+        ]
+    }
 
 @app.post("/title")
 def generate_title(request: ChatRequest):
@@ -101,7 +122,7 @@ def chat(request: ChatRequest):
     response = requests.post(
         "http://localhost:11434/api/chat",
         json={
-            "model": "layla",
+            "model": request.model,
             "messages": messages,
             "stream": True
         },

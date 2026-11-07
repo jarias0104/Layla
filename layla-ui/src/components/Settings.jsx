@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Settings({ onClose }) {
   const [responseStyle, setResponseStyle] = useState(() => {
@@ -7,6 +7,32 @@ function Settings({ onClose }) {
   const [systemPrompt, setSystemPrompt] = useState(() => {
     return localStorage.getItem("layla-system-prompt") || "";
   });
+  const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem("layla-model") || "layla";
+  });
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [modelsError, setModelsError] = useState("");
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/models");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch models");
+        }
+
+        const data = await response.json();
+        setModels(data.models);
+      } catch (error) {
+        setModelsError("Could not load Ollama models");
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+    fetchModels();
+  }, []);
 
   const resetSettings = () => {
     setResponseStyle("balanced");
@@ -44,14 +70,42 @@ function Settings({ onClose }) {
           </p>
 
           <div className="mt-4 rounded-lg border border-zinc-800 bg-zinc-950 p-4">
-            <p className="text-xs text-zinc-500">Active model</p>
-            <p className="mt-1 text-sm font-medium text-white">layla</p>
-            <p className="mt-1 text-xs text-zinc-500">
-              Running locally through Ollama
+            <label
+              htmlFor="model-select"
+              className="block text-xs text-zinc-500"
+            >
+              Active model
+            </label>
+
+            <select
+              id="model-select"
+              value={selectedModel}
+              disabled={modelsLoading || models.length === 0}
+              onChange={(event) => {
+                const model = event.target.value;
+                setSelectedModel(model);
+                localStorage.setItem("layla-model", model);
+              }}
+              className="mt-2 w-full max-w-sm rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-zinc-500 disabled:opacity-50"
+            >
+              {models.map((model) => (
+                <option key={model.name} value={model.name}>
+                  {model.name}
+                </option>
+              ))}
+            </select>
+
+            <p className="mt-2 text-xs text-zinc-500">
+              {modelsLoading
+                ? "Loading installed models..."
+                : modelsError
+                  ? modelsError
+                  : models.length === 0
+                    ? "No Ollama models found."
+                    : "Running locally through Ollama."}
             </p>
           </div>
         </div>
-
         <div className="border-t border-zinc-800 pt-6">
         <h3 className="text-base font-semibold">Assistant Behavior</h3>
         <p className="mt-1 text-sm text-zinc-400">

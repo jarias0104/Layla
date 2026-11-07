@@ -71,19 +71,6 @@ function stopGenerating () {
 
 // regenerates a msg
 function regenerateResponse(message) {
-  const messageIndex = messages.indexOf(message);
-
-  if(messageIndex <= 0 || message.role !== "assistant"){
-    return;
-  }
-
-  const userMessage = messages[messageIndex -1];
-  
-  if (userMessage.role !== "user"){
-    return;
-  }
-  
-}
   const messageIndex = messages.findIndex(
     msg => msg.id === message.id
   );
@@ -100,6 +87,7 @@ function regenerateResponse(message) {
 
   sendMessage(userMessage.content, messageIndex);
 }
+
 
 // edit a sent msg
 function editMessage(message) {
@@ -206,7 +194,8 @@ setChats(prevChats =>
   body: JSON.stringify({
     messages: updatedMessages,
     response_style: localStorage.getItem("layla-response-style") || "balanced",
-    system_prompt: localStorage.getItem("layla-system-prompt") || ""
+    system_prompt: localStorage.getItem("layla-system-prompt") || "",
+    model: localStorage.getItem("layla-model") || "layla"
   }),
   signal: controller.signal
 });
@@ -378,6 +367,6 @@ function createNewChat() {
 
         </div> 
   );
-
+}
 
 export default App;
