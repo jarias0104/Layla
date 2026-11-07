@@ -2,29 +2,53 @@
 
 **Layla** is a locally running AI assistant built with **Ollama, Qwen2.5, FastAPI, and React**.
 
-The goal of the project is to build a personal AI assistant that runs entirely on the user's computer, with a custom web interface and a backend API connecting the interface to a local language model.
+The goal of the project is to build a personal AI assistant that runs entirely on the user's computer, with a custom web interface and a backend API connecting the interface to locally hosted language models.
 
 ---
 
 ## Features
 
-* Local AI inference using Ollama
-* Qwen2.5 7B Instruct model
-* Custom Ollama model named `layla`
-* React + Vite frontend
-* FastAPI backend
-* Multiple chat conversations
-* Create new chats
-* Switch between conversations
-* Automatically generate chat titles
-* Rename chats
-* Delete chats
-* Persistent conversations using `localStorage`
-* Typing indicator while Layla is thinking
-* Automatic scrolling to the latest message
-* Dark-themed interface
-* One-click launcher
-* Runs completely locally
+### AI and Model Management
+- Local AI inference using Ollama
+- Qwen2.5 7B Instruct support
+- Custom Ollama model named `layla`
+- Retrieve installed Ollama models through the backend
+- Select between installed models directly from Settings
+- Persist the selected model using `localStorage`
+- Configurable response styles: Concise, Balanced, and Detailed
+- Custom system prompts to personalize assistant behavior
+
+### Chat Management
+- Multiple independent conversations
+- Create new chats
+- Switch between conversations
+- Automatically generate chat titles
+- Rename conversations
+- Delete conversations
+- Search conversations
+- Persistent conversations using browser `localStorage`
+- Persist the currently selected conversation
+
+### Messaging
+- Streaming responses from Ollama
+- Typing indicator while Layla is generating
+- Stop generation at any time
+- Regenerate previous responses
+- Edit and resend user messages
+- Markdown rendering
+- Code syntax highlighting
+- Copy code blocks
+- Message timestamps
+- Automatic scrolling to the latest message
+
+### Interface and Application
+- React + Vite frontend
+- FastAPI backend
+- Dark-themed interface
+- Settings page
+- Custom rename and delete dialogs
+- One-click Windows launcher
+- Runs locally without depending on a hosted AI inference service
 
 ---
 
@@ -37,7 +61,10 @@ The goal of the project is to build a personal AI assistant that runs entirely o
 │       Port 5173         │
 └────────────┬────────────┘
              │
-             │ HTTP POST /chat
+             │ HTTP Requests
+             │ POST /chat
+             │ POST /title
+             │ GET  /models
              ▼
 ┌─────────────────────────┐
 │        FastAPI          │
@@ -54,9 +81,9 @@ The goal of the project is to build a personal AI assistant that runs entirely o
              │
              ▼
 ┌─────────────────────────┐
+│      Local Models       │
 │       Qwen2.5 7B        │
-│     Custom model:       │
-│         layla            │
+│    Custom model: layla  │
 └─────────────────────────┘
 ```
 
@@ -65,26 +92,23 @@ The goal of the project is to build a personal AI assistant that runs entirely o
 ## Technologies
 
 ### Frontend
-
-* React
-* Vite
-* JavaScript
-* CSS
-* Browser `localStorage`
+- React
+- Vite
+- JavaScript
+- Tailwind CSS
+- Browser `localStorage`
 
 ### Backend
-
-* Python
-* FastAPI
-* Uvicorn
-* Requests
-* Pydantic
+- Python
+- FastAPI
+- Uvicorn
+- Requests
+- Pydantic
 
 ### AI
-
-* Ollama
-* Qwen2.5 7B Instruct
-* Custom Ollama model: `layla`
+- Ollama
+- Qwen2.5 7B Instruct
+- Custom Ollama model: `layla`
 
 ---
 
@@ -101,9 +125,22 @@ Layla/
 │
 └── layla-ui/
     ├── src/
+    │   ├── components/
+    │   │   ├── Sidebar.jsx
+    │   │   ├── ChatList.jsx
+    │   │   ├── ChatHeader.jsx
+    │   │   ├── ChatMessages.jsx
+    │   │   ├── Message.jsx
+    │   │   ├── ChatInput.jsx
+    │   │   ├── TypingIndicator.jsx
+    │   │   ├── RenameChatModal.jsx
+    │   │   ├── DeleteChatModal.jsx
+    │   │   └── Settings.jsx
+    │   │
     │   ├── App.jsx
     │   ├── App.css
-    │   └── ...
+    │   ├── index.css
+    │   └── main.jsx
     │
     ├── package.json
     └── ...
@@ -115,12 +152,12 @@ Layla/
 
 Before running Layla, install:
 
-* Windows
-* Python
-* Node.js
-* npm
-* Ollama
-* Qwen2.5 or the custom `layla` model
+- Windows
+- Python
+- Node.js
+- npm
+- Ollama
+- At least one Ollama model
 
 The project was developed and tested with a local NVIDIA GPU.
 
@@ -140,33 +177,31 @@ ollama --version
 
 ---
 
-## 2. Create the Layla model
+## 2. Install or Create the Layla Model
 
-Layla uses a custom Ollama model named:
+Layla supports multiple installed Ollama models.
+
+The original custom model is named:
 
 ```text
 layla
 ```
 
-The model is based on Qwen2.5 7B Instruct.
+It is based on Qwen2.5 7B Instruct.
 
-Verify that the model exists:
+Verify your installed models:
 
 ```bash
 ollama list
 ```
 
-You should see:
-
-```text
-layla
-```
-
-You can also test it directly:
+You can test the custom model directly:
 
 ```bash
 ollama run layla
 ```
+
+You can also install other Ollama models and select them from Layla's Settings page.
 
 ---
 
@@ -252,7 +287,7 @@ The project includes:
 Start Layla.bat
 ```
 
-The launcher starts:
+The launcher starts the local application services:
 
 1. Ollama
 2. FastAPI
@@ -271,6 +306,8 @@ The launcher is intended to make starting the entire local AI stack easier.
 
 # API
 
+Layla uses FastAPI to communicate between the React frontend and Ollama.
+
 ## Health Check
 
 ```http
@@ -285,7 +322,49 @@ Example response:
 }
 ```
 
----
+## Installed Models
+
+```http
+GET /models
+```
+
+Returns the models currently installed in Ollama.
+
+Example response:
+
+```json
+{
+  "models": [
+    {
+      "name": "layla",
+      "size": 4680000000
+    }
+  ]
+}
+```
+
+The frontend uses this endpoint to populate the model selector in Settings.
+
+## Generate Chat Title
+
+```http
+POST /title
+```
+
+Receives the first user message and generates a short conversation title using Ollama.
+
+Example request:
+
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "How do I learn React?"
+    }
+  ]
+}
+```
 
 ## Chat
 
@@ -293,7 +372,9 @@ Example response:
 POST /chat
 ```
 
-Request:
+Receives the conversation history and assistant configuration, then forwards the request to the selected Ollama model.
+
+Example request:
 
 ```json
 {
@@ -302,19 +383,14 @@ Request:
       "role": "user",
       "content": "Hello Layla"
     }
-  ]
+  ],
+  "response_style": "balanced",
+  "system_prompt": "",
+  "model": "layla"
 }
 ```
 
-Response:
-
-```json
-{
-  "response": "Hello! How can I help you?"
-}
-```
-
-The backend forwards the conversation to Ollama using the `layla` model.
+The response is streamed using newline-delimited JSON (NDJSON), allowing Layla to display generated text progressively rather than waiting for the entire response.
 
 ---
 
@@ -322,13 +398,17 @@ The backend forwards the conversation to Ollama using the `layla` model.
 
 Layla stores conversations in the browser's `localStorage`.
 
-The storage key is:
+Storage keys:
 
-```text
-layla-chats
-```
+| Key | Purpose |
+|---|---|
+| `layla-chats` | Stores conversations and messages |
+| `layla-active-chat` | Stores the currently selected conversation |
+| `layla-model` | Stores the selected Ollama model |
+| `layla-response-style` | Stores the response style |
+| `layla-system-prompt` | Stores custom assistant instructions |
 
-Each chat contains:
+Each conversation contains information similar to:
 
 ```javascript
 {
@@ -336,26 +416,68 @@ Each chat contains:
   title: "My Chat",
   messages: [
     {
+      id: "message-uuid",
       role: "user",
-      content: "Hello Layla"
+      content: "Hello Layla",
+      timestamp: "2026-01-01T12:00:00.000Z"
     },
     {
+      id: "message-uuid",
       role: "assistant",
-      content: "Hello! How can I help?"
+      content: "Hello! How can I help?",
+      timestamp: "2026-01-01T12:00:05.000Z"
     }
   ]
 }
 ```
 
-This allows conversations to remain available after refreshing the browser.
+This allows conversations and their messages to remain available after refreshing the browser.
 
 ---
 
-# Current Features
+# Settings
 
-### Multiple Conversations
+Layla includes a Settings page for configuring the assistant.
 
-Users can create multiple independent conversations.
+## Model Configuration
+
+Users can view the installed Ollama models and select which one Layla uses for chat generation.
+
+The selected model is saved in `localStorage`, so the preference remains after refreshing the application.
+
+## Response Style
+
+Three response styles are available:
+
+- **Concise:** Prioritizes key information and avoids unnecessary detail.
+- **Balanced:** Provides clear explanations with an appropriate level of detail.
+- **Detailed:** Provides thorough explanations, examples, and additional context when useful.
+
+## Custom System Prompt
+
+Users can provide additional instructions that guide Layla's behavior.
+
+For example:
+
+```text
+When explaining code, use simple examples and explain each step.
+```
+
+These instructions are combined with the selected response style and sent to the backend with chat requests.
+
+## Reset Settings
+
+The Reset to Defaults button restores the Balanced response style and clears the custom system prompt.
+
+---
+
+# Chat Management
+
+## Multiple Conversations
+
+Users can create multiple independent conversations and switch between them.
+
+Example:
 
 ```text
 + New Chat
@@ -366,36 +488,47 @@ Music Ideas
 SQL Practice
 ```
 
-### Automatic Titles
+## Automatic Titles
 
-The first message in a new conversation becomes its title.
+When a new conversation receives its first message, Layla generates a short title using the local Ollama model.
 
-For example:
+## Rename and Delete
 
-```text
-User:
-How do I learn React?
-```
-
-The chat can automatically become:
-
-```text
-How do I learn React?
-```
-
-### Rename
-
-Existing conversations can be renamed.
-
-### Delete
-
-Conversations can be deleted.
+Existing conversations can be renamed or deleted.
 
 Layla prevents the user from deleting the final remaining conversation.
 
-### Persistence
+## Search Conversations
 
-Refreshing the browser does not delete conversations because they are stored in `localStorage`.
+Users can search their existing conversations to find previous discussions.
+
+---
+
+# Message Features
+
+## Streaming
+
+Layla displays responses as Ollama generates them, rather than waiting for the complete response.
+
+## Stop Generation
+
+Users can stop an ongoing response using the stop-generation control.
+
+## Regenerate Response
+
+Users can request another response to a previous message without manually sending the same question again.
+
+## Edit and Resend
+
+Users can edit a previously sent message and submit the revised version.
+
+## Markdown and Code
+
+Layla supports Markdown formatting and code presentation, including code syntax highlighting and code-copy functionality.
+
+## Timestamps
+
+Messages include timestamps to indicate when they were sent or generated.
 
 ---
 
@@ -426,7 +559,7 @@ ollama serve
 
 # Troubleshooting
 
-## Layla doesn't respond
+## Layla Doesn't Respond
 
 Check that Ollama is running:
 
@@ -434,7 +567,7 @@ Check that Ollama is running:
 ollama list
 ```
 
-Then test the model:
+Test the selected model directly:
 
 ```bash
 ollama run layla
@@ -446,15 +579,19 @@ Check that FastAPI is running:
 http://127.0.0.1:8000/docs
 ```
 
-Finally check that Vite is running:
+Check that the installed models endpoint works:
+
+```text
+http://127.0.0.1:8000/models
+```
+
+Finally, check that Vite is running:
 
 ```text
 http://localhost:5173
 ```
 
----
-
-## FastAPI returns CORS errors
+## FastAPI Returns CORS Errors
 
 The backend allows the Vite development origins:
 
@@ -465,9 +602,25 @@ http://127.0.0.1:5173
 
 If the frontend is moved to another port or domain, the CORS configuration may need to be updated.
 
----
+## Models Don't Appear in Settings
 
-## Chats disappear after refreshing
+Make sure Ollama is running and that at least one model is installed.
+
+Run:
+
+```bash
+ollama list
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000/models
+```
+
+If the endpoint does not return the installed models, check that Ollama is available at port `11434`.
+
+## Chats Disappear After Refreshing
 
 Layla uses browser `localStorage`.
 
@@ -477,7 +630,13 @@ Check the browser's stored data for:
 layla-chats
 ```
 
-The active chat is initialized from the saved conversations so that the application does not assume that chat ID `1` still exists.
+The active conversation is stored separately under:
+
+```text
+layla-active-chat
+```
+
+Clearing browser storage can remove saved conversations and preferences.
 
 ---
 
@@ -485,24 +644,17 @@ The active chat is initialized from the saved conversations so that the applicat
 
 Possible future improvements:
 
-* [ ] Streaming responses from Ollama
-* [ ] Markdown rendering
-* [ ] Code syntax highlighting
-* [ ] Message timestamps
-* [ ] Better chat rename/delete interface
-* [ ] Persist the currently selected chat
-* [ ] Search conversations
-* [ ] Conversation database
-* [ ] User settings
-* [ ] Custom system prompts
-* [ ] Voice input
-* [ ] Text-to-speech
-* [ ] Tool/function calling
-* [ ] File uploads
-* [ ] Long-term memory
-* [ ] Personal assistant actions
-* [ ] Improved launcher
-* [ ] Mobile-responsive UI
+- [ ] Conversation database instead of browser-only storage
+- [ ] Voice input
+- [ ] Text-to-speech
+- [ ] Tool and function calling
+- [ ] File uploads
+- [ ] Long-term memory
+- [ ] Personal assistant actions
+- [ ] Improved launcher
+- [ ] Mobile-responsive UI
+- [ ] User-configurable model parameters
+- [ ] Improved conversation management
 
 ---
 
@@ -526,7 +678,7 @@ Perform actions
 Interact naturally
 ```
 
-The project is being developed incrementally, starting with a simple local chat system and gradually adding more advanced assistant capabilities.
+The project is being developed incrementally, starting with a local chat system and gradually adding more advanced assistant capabilities.
 
 ---
 
@@ -536,11 +688,11 @@ The project is being developed incrementally, starting with a simple local chat 
 
 Layla is a personal software project focused on learning and experimenting with:
 
-* Artificial Intelligence
-* Local LLMs
-* React
-* Python
-* FastAPI
-* APIs
-* Software architecture
-* Human-computer interaction
+- Artificial Intelligence
+- Local LLMs
+- React
+- Python
+- FastAPI
+- APIs
+- Software architecture
+- Human-computer interaction
